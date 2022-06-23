@@ -1,0 +1,21 @@
+INFO: [v++ 60-1306] Additional information associated with this v++ compile can be found at:
+	Reports: /home/marcod/VitisFF/kernels/_x/reports/krnl_vsub
+	Log files: /home/marcod/VitisFF/kernels/_x/logs/krnl_vsub
+INFO: [v++ 60-1548] Creating build summary session with primary output /home/marcod/VitisFF/kernels/krnl_vsub.xo.compile_summary, at Thu Jun 23 17:17:48 2022
+INFO: [v++ 60-1316] Initiating connection to rulecheck server, at Thu Jun 23 17:17:48 2022
+INFO: [v++ 60-1315] Creating rulecheck session with output '/home/marcod/VitisFF/kernels/_x/reports/krnl_vsub/v++_compile_krnl_vsub_guidance.html', at Thu Jun 23 17:17:51 2022
+INFO: [v++ 60-895]   Target platform: /opt/xilinx/platforms/xilinx_u50_gen3x16_xdma_201920_3/xilinx_u50_gen3x16_xdma_201920_3.xpfm
+INFO: [v++ 60-1578]   This platform contains Xilinx Shell Archive '/opt/xilinx/platforms/xilinx_u50_gen3x16_xdma_201920_3/hw/hw.xsa'
+INFO: [v++ 74-78] Compiler Version string: 2022.1
+INFO: [v++ 60-1302] Platform 'xilinx_u50_gen3x16_xdma_201920_3.xpfm' has been explicitly enabled for this release.
+INFO: [v++ 60-585] Compiling for software emulation target
+INFO: [v++ 60-423]   Target device: xilinx_u50_gen3x16_xdma_201920_3
+INFO: [v++ 60-242] Creating kernel: 'krnl_vsub'
+
+===>The following messages were generated while  performing high-level synthesis for kernel: krnl_vsub Log file: /home/marcod/VitisFF/kernels/_x/krnl_vsub/krnl_vsub/vitis_hls.log :
+ERROR: [v++ 214-157] Top function not found: there is no function named 'krnl_vsub'
+ERROR: [v++ 60-300] Failed to build kernel(ip) krnl_vsub, see log for details: /home/marcod/VitisFF/kernels/_x/krnl_vsub/krnl_vsub/vitis_hls.log
+ERROR: [v++ 60-773] In '/home/marcod/VitisFF/kernels/_x/krnl_vsub/krnl_vsub/vitis_hls.log', caught Tcl error: ERROR: [HLS 214-157] Top function not found: there is no function named 'krnl_vsub'
+ERROR: [v++ 60-599] Kernel compilation failed to complete
+ERROR: [v++ 60-592] Failed to finish compilation
+INFO: [v++ 60-1653] Closing dispatch client.

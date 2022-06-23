@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="link" dir="">
+  <FileSets>
+    <FileSet Name="kernel_krnl_vsub" Type="DesignSrcs">
+      <File Path="/home/marcod/VitisFF/kernels/_x/link/int/xo/krnl_vsub/krnl_vsub/cpu_sources/krnl_vsub.cpp"/>
+      <Config/>
+    </FileSet>
+  </FileSets>
+  <Runs/>
+</project>

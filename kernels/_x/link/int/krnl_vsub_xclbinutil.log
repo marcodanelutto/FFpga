@@ -1,0 +1,52 @@
+XRT Build Version: 2.13.466 (2022.1)
+       Build Date: 2022-04-14 17:43:11
+          Hash ID: f5505e402c2ca1ffe45eb6d3a9399b23a0dc8776
+Creating a default 'in-memory' xclbin image.
+
+Section: 'BITSTREAM'(0) was successfully added.
+Size   : 260936 bytes
+Format : RAW
+File   : '/home/marcod/VitisFF/kernels/_x/link/int/krnl_vsub.so'
+
+Section: 'MEM_TOPOLOGY'(6) was successfully added.
+Format : JSON
+File   : 'mem_topology'
+
+Section: 'IP_LAYOUT'(8) was successfully added.
+Format : JSON
+File   : 'ip_layout'
+
+Section: 'CONNECTIVITY'(7) was successfully added.
+Format : JSON
+File   : 'connectivity'
+WARNING: Skipping CLOCK_FREQ_TOPOLOGY section for count size is zero.
+WARNING: Section 'CLOCK_FREQ_TOPOLOGY' content is empty.  No data in the given JSON file.
+
+Section: 'CLOCK_FREQ_TOPOLOGY'(11) was empty.  No action taken.
+Format : JSON
+File   : '/home/marcod/VitisFF/kernels/_x/link/int/krnl_vsub_xml.rtd'
+
+Section: 'BUILD_METADATA'(14) was successfully added.
+Size   : 2207 bytes
+Format : JSON
+File   : '/home/marcod/VitisFF/kernels/_x/link/int/krnl_vsub_build.rtd'
+
+Section: 'EMBEDDED_METADATA'(2) was successfully added.
+Size   : 2516 bytes
+Format : RAW
+File   : '/home/marcod/VitisFF/kernels/_x/link/int/krnl_vsub.xml'
+
+Section: 'SYSTEM_METADATA'(22) was successfully added.
+Size   : 11906 bytes
+Format : RAW
+File   : '/home/marcod/VitisFF/kernels/_x/link/int/systemDiagramModel.json'
+
+Section: 'PARTITION_METADATA'(20) was successfully appended to.
+Format : JSON
+File   : 'partition_metadata'
+
+Section: 'IP_LAYOUT'(8) was successfully appended to.
+Format : JSON
+File   : 'ip_layout'
+Successfully wrote (303125 bytes) to the output file: /home/marcod/VitisFF/kernels/krnl_vsub.xclbin
+Leaving xclbinutil.
