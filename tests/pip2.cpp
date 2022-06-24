@@ -4,7 +4,7 @@
 using namespace std;
 using namespace ff;
 
-#include "fpganodo.hpp"
+#include <fpga/fpganode.hpp>
 
 class gen : public ff_node {
 private:
@@ -103,7 +103,7 @@ int main(int argc, char * argv[]) {
   task_description.in.push_back({nullptr, size_in_bytes});
   task_description.out.push_back({nullptr, size_in_bytes});
   task_description.scalars.push_back({nullptr, sizeof(int)});
-  FNode s2(kernelName, bitStream, task_description);
+  ff_node_fpga s2(kernelName, bitStream, task_description);
 
   ff_pipeline p;				// create pipeline
   p.add_stage(new gen(n, m, max));		// add "classic" source stage
