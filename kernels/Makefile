@@ -10,5 +10,8 @@ kernels:
 %.xclbin:	%.xo
 	$(KERNCXX) -t $(TARGET)  $(KERNPLAT) --link $< -o $@ --save-temps ### --config ./connectivity.cfg 
 
+krnl_vall.xclbin:	krnl_vadd.xo krnl_vsub.xo krnl_vinc.xo
+	$(KERNCXX) -t $(TARGET)  $(KERNPLAT) --link krnl_vadd.xo krnl_vsub.xo krnl_vinc.xo -o $@ --save-temps ### --config ./connectivity.cfg 
+
 clean:
 	rm -Rf *log *summary *info _x *.xo
