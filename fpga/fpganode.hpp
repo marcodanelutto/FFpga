@@ -54,7 +54,7 @@ public:
 
     d->cleanup();
     return;
-  }
+ }
   
   void * svc (void * t) {
 
