@@ -7,3 +7,6 @@ HOSTLDFLAGS = -L$(XILINX_XRT)/lib/  -pthread -lrt -lstdc++
 
 clean:
 	rm -f *.out main pip pip2 pip3
+
+run2hw:
+	./pip2 krnl_vadd ../../vadd-hw/krnl_vadd.xclbin
