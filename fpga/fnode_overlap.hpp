@@ -49,8 +49,9 @@ public:
     {
         d = new FDevice(bs, kn);
 
-        kernels.push_back(d->createKernelInstance());
-        kernels.push_back(d->createKernelInstance());
+        for (size_t i = 0; i < par; i++) {
+            kernels.push_back(d->createKernelInstance());
+        }
 
         int argi = 0;
 
@@ -75,7 +76,7 @@ public:
             buffs.reserve(par);
 
             for (size_t i = 0; i < par; ++i) {
-                cl::Buffer * b = new cl::Buffer(d->getContext(), CL_MEM_READ_ONLY, p.size, nullptr, &err);
+                cl::Buffer * b = new cl::Buffer(d->getContext(), CL_MEM_WRITE_ONLY, p.size, nullptr, &err);
                 if (err != CL_SUCCESS) return -2;
                 buffs.push_back(b);
 
