@@ -14,6 +14,7 @@
 #include <memory>
 #include "task.hpp"
 
+
 // per fastflow
 #include <ff/ff.hpp>
 
@@ -70,20 +71,20 @@ public:
 	}
       }
     }
-    std::cerr << "MDLOG: Device found " << std::endl; 
+    if(mdlog) std::cerr << "MDLOG: Device found " << std::endl; 
     context = cl::Context(device, NULL, NULL, NULL, &err);
     if(err != CL_SUCCESS) {
       found_device = false; 
       return;
     }
-    std::cerr << "MDLOG: got context " << std::endl; 
+    if(mdlog) std::cerr << "MDLOG: got context " << std::endl; 
     // crea la command queue
     q = cl::CommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &err);
     if(err != CL_SUCCESS) {
       found_device = false; 
       return;
     }
-    std::cerr << "MDLOG: got queue " << std::endl; 
+    if(mdlog) std::cerr << "MDLOG: got queue " << std::endl; 
 
     // se esci da qui è stato trovato il device e la command queue è a posto 
     return; 

@@ -3,10 +3,13 @@
 #include <iostream>
 #include <ff/ff.hpp>
 
+const bool mdlog = false; 
+
 #include <fpga/hostinsterfaceutils.hpp>
 #include <fpga/task.hpp> 
 
 #include <utils/utimer.cpp>
+
 
 using namespace std; 
 using namespace ff;
@@ -31,17 +34,17 @@ public:
     d = new FpgaDevice{};
     if(!d->DeviceExists()) 
       return(-1);
-    std::cerr << "MDLOG: device found!" << std::endl;
+    if(mdlog) std::cerr << "MDLOG: device found!" << std::endl;
     
     if(loadKernel) {
       if(!d->CreateKernel(bitStream, kernelName))
         return(-1);
-      std::cerr << "MDLOG: kernel created!" << std::endl;
+      if(mdlog) std::cerr << "MDLOG: kernel created!" << std::endl;
     }
     
     if(!d->setupBuffers(task_description))
       return(-1);
-    std::cerr << "MDLOG: bufferes created!" << std::endl;
+    if(mdlog) std::cerr << "MDLOG: bufferes created!" << std::endl;
     return(0);
   }
 
@@ -69,7 +72,7 @@ public:
     
       if(!d->waitTask())
         return(NULL);
-      std::cerr << "MDLOG:  task computed!" << std::endl;
+      if(mdlog) std::cerr << "MDLOG:  task computed!" << std::endl;
     }
 
 
