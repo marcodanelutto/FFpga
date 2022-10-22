@@ -4,6 +4,7 @@
 
 int main() {
 	hls::stream<int> s1;
+/*
   s1 << 123;
   s1 << 234;
   int r; 
@@ -13,6 +14,7 @@ int main() {
   std::cout << r << std::endl; 
   s1 >> r;
   std::cout << r << std::endl; 
+*/
 
   uint32_t a[] = {1, 2, 3, 4};
   uint32_t b[] = {1,1,1,1};
