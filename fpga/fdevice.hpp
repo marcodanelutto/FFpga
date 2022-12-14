@@ -10,12 +10,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-// pre unique_ptr
-#include <memory>
-#include "task.hpp"
-
-// per fastflow
-#include <ff/ff.hpp>
 
 #define OCL_CHECK(error, call) \
 call; \
@@ -34,6 +28,7 @@ private:
     cl_int err;
     cl::Device device;
     cl::Context context;
+    cl::Program program;
 
 
 public:
@@ -66,12 +61,20 @@ public:
             exit(-1);
         }
 
-        context = cl::Context(device, NULL, NULL, NULL, &err);
+        context = createContext();
+        program = createProgram();
+    }
+
+    cl::Context createContext()
+    {
+        cl::Context _context = cl::Context(device, NULL, NULL, NULL, &err);
         if(err != CL_SUCCESS) {
             std::cerr << "MDLOG: Context CANNOT be created" << std::endl;
             exit(-2);
         }
         std::cerr << "MDLOG: got context " << std::endl;
+
+        return _context;
     }
 
     cl::Context getContext()
@@ -79,36 +82,41 @@ public:
         return context;
     }
 
-
-    cl::Kernel createKernelInstance()
+    cl::Program createProgram()
     {
+        std::cout << "INFO: Reading " << bs << std::endl;
         FILE* fp;
         if ((fp = fopen(bs.c_str(), "r")) == nullptr) {
             printf("ERROR: %s xclbin not available please build\n", bs.c_str());
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
-
-        // Load xclbin
-        std::ifstream bin_file(bs, std::ifstream::binary);
-        bin_file.seekg (0, bin_file.end);
-        unsigned nb = bin_file.tellg();
-        bin_file.seekg (0, bin_file.beg);
-        char *buf = new char [nb];
-        bin_file.read(buf, nb);
+        // Loading XCL Bin into char buffer
+        std::cout << "Loading: '" << bs.c_str() << "'\n";
+        std::ifstream bin_file(bs.c_str(), std::ifstream::binary);
+        bin_file.seekg(0, bin_file.end);
+        auto nb = bin_file.tellg();
+        bin_file.seekg(0, bin_file.beg);
+        std::vector<unsigned char> buf;
+        buf.resize(nb);
+        bin_file.read(reinterpret_cast<char*>(buf.data()), nb);
 
         // Creating Program from Binary File
-        cl::Program::Binaries bins;
-        bins.push_back({buf,nb});
+        cl::Program::Binaries bins{{buf.data(), buf.size()}};
 
-        std::vector<cl::Device> devices;
-        devices.push_back(device);
+        std::vector<cl::Device> devices{device};
+        // devices.push_back(device);
 
-        cl::Program program(context, devices, bins, NULL, &err);
+        cl::Program program = cl::Program(context, devices, bins, nullptr, &err);
         if(err != CL_SUCCESS) {
             std::cout << "Error loading program code from xclbin" << std::endl;
             exit(-2);
         }
+        return program;
+    }
 
+
+    cl::Kernel createKernelInstance()
+    {
         cl::Kernel krnl = cl::Kernel(program, kn.c_str(), &err);
         if(err != CL_SUCCESS) {
             std::cout << "Error creating kernel from xclbin" << std::endl;

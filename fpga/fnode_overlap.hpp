@@ -97,19 +97,18 @@ private:
 
 public:
 
-    fnode_sender(std::string bs, std::string kn, FTaskCL task_description, size_t par = 2)
-    : bs(bs)
-    , kn(kn)
+    fnode_sender(FDevice * d, FTaskCL task_description, size_t par = 2)
+    : d(d)
     , task_description(task_description)
     , par(par)
     , it(0)
     {
-        d = new FDevice(bs, kn);
         _prepare();
     }
 
-    fnode_sender(FDevice * d, FTaskCL task_description, size_t par = 2)
-    : d(d)
+    fnode_sender(std::string bs, std::string kn, FTaskCL task_description, size_t par = 2)
+    : bs(bs)
+    , kn(kn)
     , task_description(task_description)
     , par(par)
     , it(0)
@@ -198,7 +197,7 @@ public:
 class fnode_receiver : public ff_node
 {
 private:
-
+    double total_time;
 public:
 
     fnode_receiver()
@@ -245,6 +244,16 @@ private:
     fnode_sender * sender;
     fnode_receiver * receiver;
 
+    void prepare(FDevice * d)
+    {
+        sender = new fnode_sender(d, task_description, par);
+        receiver = new fnode_receiver();
+
+        p = new ff_pipeline();
+        p->add_stage(sender);
+        p->add_stage(receiver);
+    }
+
     void prepare(std::string bs, std::string kn)
     {
         sender = new fnode_sender(bs, kn, task_description, par);
@@ -256,11 +265,12 @@ private:
     }
 
 public:
-        fnode_overlap(FTaskCL task_description, size_t par = 2)
+
+        fnode_overlap(FDevice * d, FTaskCL task_description, size_t par = 2)
             : task_description(task_description)
             , par(par)
         {
-            prepare("krnl_vadd.xclbin", "krnl_vadd");
+            prepare(d);
         }
 
         fnode_overlap(std::string bs, std::string kn, FTaskCL task_description, size_t par = 2)

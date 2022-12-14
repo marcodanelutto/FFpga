@@ -28,7 +28,7 @@ private:
 
 public:
 
-    fnode_sender(FDevice * device)
+    fnode_sender(FDevice * d)
     : d(d)
     {
         kernel = d->createKernelInstance();
@@ -161,6 +161,16 @@ private:
     fnode_sender * sender;
     fnode_receiver * receiver;
 
+    void prepare(FDevice * d)
+    {
+        sender = new fnode_sender(d);
+        receiver = new fnode_receiver();
+
+        p = new ff_pipeline();
+        p->add_stage(sender);
+        p->add_stage(receiver);
+    }
+
     void prepare(std::string bs, std::string kn)
     {
         sender = new fnode_sender(bs, kn);
@@ -172,6 +182,12 @@ private:
     }
 
 public:
+    
+    fnode_pinned_overlap(FDevice * d)
+    {
+        prepare(d);
+    }
+
     fnode_pinned_overlap(std::string bs, std::string kn)
     {
         prepare(bs, kn);
