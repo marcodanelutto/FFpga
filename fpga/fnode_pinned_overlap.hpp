@@ -130,7 +130,6 @@ public:
 
     int svc_init(void)
     {
-        total_time = 0;
         return 0;
     }
 
