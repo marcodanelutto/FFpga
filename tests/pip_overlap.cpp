@@ -1,16 +1,16 @@
 #include <iostream>
 #include <sstream>
 #include <ff/ff.hpp>
+#include <fpga/fnode_overlap.hpp>
 
 using namespace std;
 using namespace ff;
 
-// #include <fpga/fpganode.hpp>
-#include <fpga/fnode_overlap.hpp>
-
+#define PRINT_TASK 0
 
 void printTask(FTaskCL * task, string sender)
 {
+#if PRINT_TASK
     int * a = (int *)(task->in[0].ptr);
     int * b = (int *)(task->in[1].ptr);
     int * c = (int *)(task->out[0].ptr);
@@ -28,6 +28,7 @@ void printTask(FTaskCL * task, string sender)
     for (int i = 0; i < task->out[0].size / sizeof(int); i++) os << c[i] << " ";
     os << "}" << endl;
     cout << os.str();
+#endif
 }
 
 class gen : public ff_node {
@@ -74,9 +75,6 @@ public:
     }
 };
 
-//
-//  this is the drain, collapsing the stream (video print)
-//
 class drain : public ff_node {
 public:
     int svc_init()
@@ -94,25 +92,25 @@ public:
     }
 };
 
-//
-// main program : sets up the pipeline with the FPGA node in the middle
-//
 int main(int argc, char * argv[])
 {
+    argc--;
+    argv++;
 
+    string bitstream  = "krnl_vadd.xclbin";
     string kernelName = "krnl_vadd";
-    string bitStream  = "krnl_vadd.xclbin";
-    if(argc > 1) {
-        kernelName = argv[1];
-        bitStream = argv[2];
-    }
-    cout << "Exec kernel " << kernelName << " with "  << bitStream << endl;
+    int n = 1 << 15;
+    int m = 1 << 6;
+    int max = 1 << 10;
 
+    int argi = 0;
+    if (argc > argi) bitstream = string(argv[argi++]);
+    if (argc > argi) kernelName = string(argv[argi++]);
+    if (argc > argi) n = atoi(argv[argi++]);
+    if (argc > argi) m = atoi(argv[argi++]);
+    if (argc > argi) max = atoi(argv[argi++]);
 
-    // Initial configuration
-    int n = 4;
-    int m = 8;
-    int max = 16;
+    cout << "Executing " << kernelName << " with " << bitstream << endl;
 
     // Define a Task for the FPGA computation
     size_t size_in_bytes = n * sizeof(int);
@@ -124,17 +122,16 @@ int main(int argc, char * argv[])
     task_description.addScalar(sizeof(int));
 
     ff_pipeline p;
-    // add "classic" generator stage
     p.add_stage(new gen(n, m, max));
 
     // Create a FPGA node and place it into the pipeline
     fnode_overlap fnp(bitStream, kernelName, task_description);
     p.add_stage(fnp.stage());
 
-    // add "classic" drain stage
     p.add_stage(new drain{});
+    p.run_and_wait_end();
 
-    p.run_and_wait_end();             // just run it
+    std::cout << "Time Spent: " << p.ffTime() << std::endl;
 
   return(0);
 }

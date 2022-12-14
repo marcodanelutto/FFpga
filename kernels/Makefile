@@ -1,17 +1,39 @@
-KERNCXX = v++ 
-KERNPLAT = --platform /opt/xilinx/platforms/xilinx_u50_gen3x16_xdma_201920_3/xilinx_u50_gen3x16_xdma_201920_3.xpfm
-TARGET = sw_emu
+# https://github.com/Xilinx/Vitis_Accel_Examples/blob/master/hello_world/makefile_us_alveo.mk
+# Look at the above link to complete the Makefile properly
 
-%.xo: 	%.cpp
-	$(KERNCXX) -t $(TARGET) $(KERNPLAT) -o $@ -c -k $* $<
-kernels: 
-	$(KERNCXX) -t $(TARGET) $(KERNPLAT) -o krnl_vsub.xo -c -k krnl_vsub krnl_vsub.cpp
+# Options for TARGET: sw_emu, hw_emu and hw
+TARGET ?= hw
+# Options for DEVICE: u200, u250. Default platform is XDMA, defined by PLATFORM
+DEVICE ?= u50
+# If other some specific platforms needs to be used, provide platform path directly
+PLATFORM ?= xilinx_$(DEVICE)_gen3x16_xdma_5_202210_1
+# If your platform is not in the standard install area edit this line
+PLATFORM_REPO_PATHS ?= /opt/xilinx/platforms
+PFM := $(PLATFORM_REPO_PATHS)/$(PLATFORM)/$(PLATFORM).xpfm
 
-%.xclbin:	%.xo
-	$(KERNCXX) -t $(TARGET)  $(KERNPLAT) --link $< -o $@ --save-temps ### --config ./connectivity.cfg 
+BOARD_CONFIG := connectivity.ini
+VPPINCLUDES := -I.
 
-krnl_vall.xclbin:	krnl_vadd.xo krnl_vsub.xo krnl_vinc.xo
-	$(KERNCXX) -t $(TARGET)  $(KERNPLAT) --link krnl_vadd.xo krnl_vsub.xo krnl_vinc.xo -o $@ --save-temps ### --config ./connectivity.cfg 
+VPPFLAGS := --platform $(PFM) -t $(TARGET) --save-temps
+VPPLFLAGS := # --config $(BOARD_CONFIG)
+
+KERNEL_NAME := DeflateKernel
+KERNEL_FILE := $(KERNEL_NAME).cpp
+KERNEL_XO := $(KERNEL_NAME).xo
+KERNEL_XCLBIN := $(KERNEL_NAME).xclbin
+VPP = v++
+
+all: $(KERNEL_XO) $(KERNEL_XCLBIN) emconfig
+
+$(KERNEL_XO): $(KERNEL_FILE)
+	$(VPP) -c --kernel $(KERNEL_NAME) $(VPPFLAGS) $(VPPINCLUDES) -o $@ $<
+
+$(KERNEL_XCLBIN): $(KERNEL_XO)
+	$(VPP) -l $(VPPFLAGS) $(VPPLFLAGS) -o $@ $<
+
+emconfig:emconfig.json
+emconfig.json:
+	emconfigutil --platform $(PLATFORM)
 
 clean:
-	rm -Rf *log *summary *info _x *.xo
+	$(RM) -rf *.xo _x .Xil *.xclbin *.ltx *.log *.info *compile_summary* vitis_analyzer* *link_summary* .run emconfig.json

@@ -29,7 +29,9 @@ struct FTaskCL
     std::vector<FTaskElement> out;     // vector of (host_ptr, size_in_bytes) for OUT device buffers
     std::vector<FTaskElement> scalars; // vector of (value, size_in_bytes) for scalar values
 
-    std::vector<cl::Event> read_events;
+    std::vector<cl::Event> write_event;
+    std::vector<cl::Event> kernel_event;
+    std::vector<cl::Event> read_event;
 
     void addIn(size_t size)
     {

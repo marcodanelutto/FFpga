@@ -96,7 +96,7 @@ public:
         char *buf = new char [nb];
         bin_file.read(buf, nb);
 
-    // Creating Program from Binary File
+        // Creating Program from Binary File
         cl::Program::Binaries bins;
         bins.push_back({buf,nb});
 
@@ -119,7 +119,7 @@ public:
 
     cl::CommandQueue createQueueInstance()
     {
-        cl::CommandQueue q = cl::CommandQueue(context, device, /*CL_QUEUE_PROFILING_ENABLE |*/ CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err);
+        cl::CommandQueue q = cl::CommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err);
         if (err != CL_SUCCESS) {
             std::cerr << "Error creating CommandQueue" << std::endl;
             exit(-1);

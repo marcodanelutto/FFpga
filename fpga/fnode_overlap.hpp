@@ -61,7 +61,10 @@ public:
 
             for (size_t i = 0; i < par; ++i) {
                 cl::Buffer * b = new cl::Buffer(d->getContext(), CL_MEM_READ_ONLY, p.size, nullptr, &err);
-                if (err != CL_SUCCESS) return -1;
+                if (err != CL_SUCCESS) {
+                    std::cerr << "Error in creating IN buffer with size: " << p.size << std::endl;
+                    return -1;
+                }
                 buffs.push_back(b);
 
                 kernels[i].setArg(argi, *b);
@@ -77,7 +80,10 @@ public:
 
             for (size_t i = 0; i < par; ++i) {
                 cl::Buffer * b = new cl::Buffer(d->getContext(), CL_MEM_WRITE_ONLY, p.size, nullptr, &err);
-                if (err != CL_SUCCESS) return -2;
+                if (err != CL_SUCCESS) {
+                    std::cerr << "Error in creating OUT buffer with size: " << p.size << std::endl;
+                    return -2;
+                }
                 buffs.push_back(b);
 
                 kernels[i].setArg(argi, *b);
@@ -122,7 +128,10 @@ public:
                                                      0, p.size, p.ptr,
                                                      nullptr,
                                                      &write_events[argi]);
-            if (err != CL_SUCCESS) return nullptr;
+            if (err != CL_SUCCESS) {
+                std::cerr << "ERROR: enqueueWriteBuffer()" << std::endl;
+                return nullptr;
+            }
 
             argi++;
         }
@@ -134,7 +143,10 @@ public:
 
         cl::Event kernel_event;
         err = kernel_queues[i].enqueueTask(kernels[i], &write_events, &kernel_event); // TODO: check write_events if has to be passed by reference
-        if (err != CL_SUCCESS) return nullptr;
+        if (err != CL_SUCCESS) {
+            std::cerr << "ERROR: enqueueTask()" << std::endl;
+            return nullptr;
+        }
 
 
         std::vector<cl::Event> wait_events;
@@ -142,13 +154,16 @@ public:
         std::vector<cl::Event> read_events(task->out.size());
         argi = 0;
         for (auto & p : task->out) {
-          err = out_queues[argi].enqueueReadBuffer(*(out_buffers[argi][i]), CL_FALSE, 0, p.size, p.ptr, &wait_events, &(read_events[argi]));
-          if (err != CL_SUCCESS) return nullptr;
-          argi++;
+            err = out_queues[argi].enqueueReadBuffer(*(out_buffers[argi][i]), CL_FALSE, 0, p.size, p.ptr, &wait_events, &(read_events[argi]));
+            if (err != CL_SUCCESS) {
+                std::cerr << "ERROR: enqueueReadBuffer()" << std::endl;
+                return nullptr;
+            }
+            argi++;
         }
 
         out_events[i] = read_events;
-        task->read_events = read_events;
+        task->read_event = read_events;
 
         return t;
     }
@@ -186,7 +201,13 @@ public:
     void * svc (void * t)
     {
         FTaskCL * task = (FTaskCL *)t;
-        cl::Event::waitForEvents(task->read_events);
+        if (t == nullptr) {
+            std::cerr << "ERROR: fnode_receiver task = NULL" << std::endl;
+        }
+
+        std::cout << "fnode_receiver: Task Received" << std::endl;
+        cl::Event::waitForEvents(task->read_event);
+        std::cout << "fnode_receiver: Task Received" << std::endl;
 
         // TODO: clear pointers before forwarding the task
 
