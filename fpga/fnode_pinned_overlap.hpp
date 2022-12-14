@@ -28,26 +28,29 @@ private:
 
 public:
 
+    fnode_sender(FDevice * device)
+    : d(d)
+    {
+        kernel = d->createKernelInstance();
+        write_queue = d->createQueueInstance();
+        kernel_queue = d->createQueueInstance();
+        read_queue = d->createQueueInstance();
+    }
+
     fnode_sender(std::string bs, std::string kn)
     : bs(bs)
     , kn(kn)
-    {}
-
-    int svc_init()
     {
         d = new FDevice(bs, kn);
         kernel = d->createKernelInstance();
         write_queue = d->createQueueInstance();
         kernel_queue = d->createQueueInstance();
         read_queue = d->createQueueInstance();
-
-        return 0;
     }
 
     void * svc (void * t)
     {
         FTaskCL * task = (FTaskCL *)t;
-        std::cout << "Receiving task" << std::endl;
 
         size_t argi = 0;
         // pin host memory buffers
@@ -127,34 +130,27 @@ public:
 
     int svc_init(void)
     {
+        total_time = 0;
         return 0;
-    }
-
-    double event_time_us(cl::Event & e)
-    {
-        cl_ulong start;
-        cl_ulong end;
-        e.getProfilingInfo(CL_PROFILING_COMMAND_START, &start);
-        e.getProfilingInfo(CL_PROFILING_COMMAND_END, &end);
-        return (end - start) / 1000.0;
     }
 
     void * svc (void * t)
     {
         FTaskCL * task = (FTaskCL *)t;
-        std::cout << "Waiting for task..." << std::endl;
         task->read_event[0].wait();
 
-        std::cout << "TASK: ("
-                  << event_time_us(task->write_event[0])  << "us, "
-                  << event_time_us(task->kernel_event[0]) << "us, "
-                  << event_time_us(task->read_event[0])   << "us) "
-                  << std::endl;
+        // auto write_time  = task->write_all_time_us();
+        // auto kernel_time = task->kernel_all_time_us();
+        // auto read_time   = task->read_all_time_us();
 
+        // total_time += write_time + kernel_time + read_time;
+
+        // std::cout << "TASK: ("
+        //           << write_time  << "us, "
+        //           << kernel_time << "us, "
+        //           << read_time   << "us) "
+        //           << std::endl;
         return t;
-    }
-
-    void svc_end() {
     }
 };
 
@@ -177,11 +173,6 @@ private:
     }
 
 public:
-    fnode_pinned_overlap()
-    {
-        prepare("krnl_vadd.xclbin", "krnl_vadd");
-    }
-
     fnode_pinned_overlap(std::string bs, std::string kn)
     {
         prepare(bs, kn);

@@ -35,20 +35,7 @@ private:
 
     cl_int err;
 
-public:
-
-    fnode_sender(std::string bs, std::string kn, FTaskCL task_description, size_t par = 2)
-    : bs(bs)
-    , kn(kn)
-    , task_description(task_description)
-    , par(par)
-    , it(0)
-    {}
-
-    int svc_init()
-    {
-        d = new FDevice(bs, kn);
-
+    void _prepare() {
         for (size_t i = 0; i < par; i++) {
             kernels.push_back(d->createKernelInstance());
         }
@@ -63,7 +50,7 @@ public:
                 cl::Buffer * b = new cl::Buffer(d->getContext(), CL_MEM_READ_ONLY, p.size, nullptr, &err);
                 if (err != CL_SUCCESS) {
                     std::cerr << "Error in creating IN buffer with size: " << p.size << std::endl;
-                    return -1;
+                    exit(-1);
                 }
                 buffs.push_back(b);
 
@@ -82,7 +69,7 @@ public:
                 cl::Buffer * b = new cl::Buffer(d->getContext(), CL_MEM_WRITE_ONLY, p.size, nullptr, &err);
                 if (err != CL_SUCCESS) {
                     std::cerr << "Error in creating OUT buffer with size: " << p.size << std::endl;
-                    return -2;
+                    exit(-2);
                 }
                 buffs.push_back(b);
 
@@ -106,8 +93,29 @@ public:
         }
 
         out_events = std::vector< std::vector<cl::Event> >(par, std::vector<cl::Event>());
+    }
 
-        return 0;
+public:
+
+    fnode_sender(std::string bs, std::string kn, FTaskCL task_description, size_t par = 2)
+    : bs(bs)
+    , kn(kn)
+    , task_description(task_description)
+    , par(par)
+    , it(0)
+    {
+        d = new FDevice(bs, kn);
+        _prepare();
+    }
+
+    fnode_sender(FDevice * d, FTaskCL task_description, size_t par = 2)
+    : d(d)
+    , task_description(task_description)
+    , par(par)
+    , it(0)
+    {
+        d = new FDevice(bs, kn);
+        _prepare();
     }
 
     void * svc (void * t)
@@ -163,6 +171,9 @@ public:
         }
 
         out_events[i] = read_events;
+
+        task->write_event = write_events;
+        task->kernel_event.push_back(kernel_event);
         task->read_event = read_events;
 
         return t;
@@ -195,6 +206,7 @@ public:
 
     int svc_init(void)
     {
+        total_time = 0;
         return 0;
     }
 
@@ -205,16 +217,20 @@ public:
             std::cerr << "ERROR: fnode_receiver task = NULL" << std::endl;
         }
 
-        std::cout << "fnode_receiver: Task Received" << std::endl;
         cl::Event::waitForEvents(task->read_event);
-        std::cout << "fnode_receiver: Task Received" << std::endl;
 
-        // TODO: clear pointers before forwarding the task
+        // auto write_time  = task->write_all_time_us();
+        // auto kernel_time = task->kernel_all_time_us();
+        // auto read_time   = task->read_all_time_us();
 
+        // total_time += write_time + kernel_time + read_time;
+
+        // std::cout << "TASK: ("
+        //           << write_time  << "us, "
+        //           << kernel_time << "us, "
+        //           << read_time   << "us) "
+        //           << std::endl;
         return t;
-    }
-
-    void svc_end() {
     }
 };
 
