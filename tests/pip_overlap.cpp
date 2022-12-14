@@ -125,7 +125,7 @@ int main(int argc, char * argv[])
     p.add_stage(new gen(n, m, max));
 
     // Create a FPGA node and place it into the pipeline
-    fnode_overlap fnp(bitStream, kernelName, task_description);
+    fnode_overlap fnp(bitstream, kernelName, task_description);
     p.add_stage(fnp.stage());
 
     p.add_stage(new drain{});
