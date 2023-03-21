@@ -1,15 +1,15 @@
 HOSTCXX = g++
-HOSTCXXFLAGS = -std=c++17 -I$(XILINX_VIVADO)/include -I$(XILINX_XRT)/include/ -I .. -O3
+HOSTCXXFLAGS = -std=c++17 -I$(XILINX_VIVADO)/include -I$(XILINX_XRT)/include/ -I .. -I ../fpga -O3
 HOSTLDFLAGS = -L$(XILINX_XRT)/lib/  -pthread -lrt -lstdc++
 
-%:	%.cpp
-	$(HOSTCXX) $(HOSTCXXFLAGS) $(HOSTLDFLAGS) -o $@ $< /usr/lib/x86_64-linux-gnu/libOpenCL.so -g -I. 
+FFINCLUDE = -I /home/ottimo/fastflow -DTRACE_FASTFLOW
 
-test:
-	$(HOSTCXX) -I ../fpga  -o hls_test hls_stream.test.cpp 
+%:	%.cpp
+	$(HOSTCXX) $(HOSTCXXFLAGS) $(HOSTLDFLAGS) $(FFINCLUDE) -o $@ $< /usr/lib/x86_64-linux-gnu/libOpenCL.so -I. 
 
 clean:
-	rm -f *.out main pip pip1 hls_test pip2 pip3
+	rm -f *.out test_ftask
 
-run2hw:
-	./pip2 krnl_vadd ../../vadd-hw/krnl_vadd.xclbin
+cleanall:
+	$(RM) -rf sd_host *.o *.xo _x .run .Xil *.xclbin *.ltx *.log *.info *compile_summary* vitis_analyzer* *link_summary* *.o main emconfig.json device_trace_0.csv *.xclbin.package_summary opencl_trace.csv xrt.run_summary summary.csv .ipcache waveform_prefs.json
+

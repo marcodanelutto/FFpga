@@ -1,0 +1,51 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Xilinx HLS
+.ipcache/
+.run/
+.Xil/
+_x/
+main
+*.xclbin
+*.xclbin.*
+*.xo
+*.xo.*
+*.log
+*.protoinst
+*.wcfg
+*.wdb
+emconfig.json
+
+# VSCode
+.vscode
