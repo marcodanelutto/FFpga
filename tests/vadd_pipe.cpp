@@ -46,6 +46,36 @@ FTask * new_task(int n, int kernel_id)
     return task;
 }
 
+FTask * new_task_middle(int n, int kernel_id, int * cc)
+{
+    const int MAX_VAL = 1024;
+
+    size_t size_in_bytes = n * sizeof(int);
+    int ret = 0;
+
+    int * a = cc;
+    int * b = cc;
+    int * c = nullptr;
+    int * s = nullptr;
+
+    ret |= posix_memalign((void **)&c, 4096, size_in_bytes);
+    s = (int *) malloc(sizeof(int));
+
+    if (ret != 0) {
+        std::cerr << "ERROR: failed to allocate aligned memory!\n";
+        exit(-1);
+    }
+    *s = n;
+
+    FTask * task = new FTask();
+    task->add_input(a,  size_in_bytes, bank_in1(kernel_id));
+    task->add_input(b,  size_in_bytes, bank_in2(kernel_id));
+    task->add_output(c, size_in_bytes, bank_out(kernel_id));
+    task->add_scalar(s, sizeof(int));
+
+    return task;
+}
+
 struct fake_emitter : public ff_node {
     int n;  // number of generators
 
@@ -83,6 +113,50 @@ struct generator : public ff_node {
     }
 };
 
+class middle : public ff_node {
+public:
+
+    int n;
+    int index;
+
+    int i;
+    std::vector<FTask *> tasks;
+
+    middle(int n, int index)
+    : n(n)
+    , index(index)
+    , i(0)
+    {}
+
+    void * svc(void * t)
+    {
+        if (t) {
+            // std::cout << "middle " + std::to_string(index) + ": receiving task " + std::to_string(i) + "\n";
+            FTask * task = (FTask *) t;
+            int * c = (int *)task->outputs[0].ptr;
+
+            free(task->inputs[0].ptr);
+            free(task->inputs[1].ptr);
+            task->outputs[0].ptr = nullptr;
+            free(task->scalars[0].ptr);
+            tasks.push_back(task);
+
+            FTask * newTask = new_task_middle(n, index, c);
+            ff_send_out(newTask);
+
+            i++;
+        }
+        return(GO_ON);
+    }
+
+    void svc_end()
+    {
+        for (auto * t : tasks) {
+            delete t;
+        }
+    }
+};
+
 struct drain : public ff_node {
     
     int index;
@@ -101,7 +175,7 @@ struct drain : public ff_node {
             FTask * task = (FTask *) t;
             // std::cout << "drain " + std::to_string(index) + ": receiving task " + std::to_string(i++) + "\n";
             free(task->inputs[0].ptr);
-            free(task->inputs[1].ptr);
+            // free(task->inputs[1].ptr);
             free(task->outputs[0].ptr);
             free(task->scalars[0].ptr);
             tasks.push_back(task);
@@ -152,7 +226,7 @@ int main(int argc, char * argv[])
     if (argc > argi) m           = atoi(argv[argi++]);
 
     if (nWorkers < 0) nWorkers = 0;
-    if (nWorkers > 8) nWorkers = 8;
+    if (nWorkers > 4) nWorkers = 4;
 
     size_t size_in_bytes = n * sizeof(int);
     size_t size_in_kb = size_in_bytes / 1024;
@@ -175,6 +249,8 @@ int main(int argc, char * argv[])
         ff_pipeline p;
         p.add_stage(new generator(n, m));
         p.add_stage(new FNodeTask(device, kernel_names[0], chain));
+        p.add_stage(new middle(n, 1));
+        p.add_stage(new FNodeTask(device, kernel_names[1], chain));
         p.add_stage(new drain());
 
         p.cleanup_nodes();
@@ -189,7 +265,9 @@ int main(int argc, char * argv[])
             ff_pipeline * p = new ff_pipeline();
             p->add_stage(new generator(n, m, i));
             p->add_stage(new FNodeTask(device, kernel_names[i], chain));
-            p->add_stage(new drain(i));
+            p->add_stage(new middle(n, i * 2 + 1));
+            p->add_stage(new FNodeTask(device, kernel_names[i * 2 + 1], chain));
+            p->add_stage(new drain());
             p->cleanup_nodes();
             w.push_back(p);
         }

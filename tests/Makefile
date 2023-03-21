@@ -1,11 +1,24 @@
 HOSTCXX = g++
-HOSTCXXFLAGS = -std=c++17 -I$(XILINX_VIVADO)/include -I$(XILINX_XRT)/include/ -I .. -I ../fpga -O3
+HOSTCXXFLAGS = -std=c++14 -I$(XILINX_VIVADO)/include -I$(XILINX_XRT)/include/ -I .. -I ../fpga -O3
 HOSTLDFLAGS = -L$(XILINX_XRT)/lib/  -pthread -lrt -lstdc++
 
 FFINCLUDE = -I /home/ottimo/fastflow -DTRACE_FASTFLOW
 
 %:	%.cpp
 	$(HOSTCXX) $(HOSTCXXFLAGS) $(HOSTLDFLAGS) $(FFINCLUDE) -o $@ $< /usr/lib/x86_64-linux-gnu/libOpenCL.so -I. 
+
+
+test_pipe: vadd_cus
+	./vadd_cus ../kernels/vadd_cus/vadd.xclbin vadd 0 0 1024 64
+
+test_farm: vadd_cus
+	./vadd_cus ../kernels/vadd_cus/vadd.xclbin vadd 8 0 1024 64
+
+test_pipe2: vadd_pipe
+	./vadd_pipe ../kernels/vadd_cus/vadd.xclbin vadd 0 0 1024 64
+
+test_farm2: vadd_pipe
+	./vadd_pipe ../kernels/vadd_cus/vadd.xclbin vadd 8 0 1024 64
 
 clean:
 	rm -f *.out test_ftask
