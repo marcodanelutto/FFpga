@@ -2,7 +2,7 @@ HOSTCXX = g++
 HOSTCXXFLAGS = -std=c++14 -I$(XILINX_VIVADO)/include -I$(XILINX_XRT)/include/ -I .. -I ../fpga -O3
 HOSTLDFLAGS = -L$(XILINX_XRT)/lib/  -pthread -lrt -lstdc++
 
-FFINCLUDE = -I /home/ottimo/fastflow -DTRACE_FASTFLOW
+FFINCLUDE = -I ~/fastflow -DTRACE_FASTFLOW
 
 %:	%.cpp
 	$(HOSTCXX) $(HOSTCXXFLAGS) $(HOSTLDFLAGS) $(FFINCLUDE) -o $@ $< /usr/lib/x86_64-linux-gnu/libOpenCL.so -I. 
