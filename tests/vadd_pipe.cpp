@@ -11,6 +11,14 @@ int bank_in1(int kernel_id) { return kernel_id * 4; }
 int bank_in2(int kernel_id) { return bank_in1(kernel_id) + 2; }
 int bank_out(int kernel_id) { return bank_in1(kernel_id); }
 
+// This function helps the generation of a new task.
+// It allocates the memory for the task, fills the input arrays with some data
+// and returns the task.
+// The FTask object is a wrapper around the task that contains the input and
+// output arrays, the scalar values and the information about the memory banks
+// used by the task.
+// The order of parameters is crucial and must be in the same order as the
+// signature of the kernel function.
 FTask * new_task(int n, int kernel_id)
 {
     const int MAX_VAL = 1024;
@@ -46,6 +54,7 @@ FTask * new_task(int n, int kernel_id)
     return task;
 }
 
+// This function helps the generation of a new task for the "VINC" kernel.
 FTask * new_task_middle(int n, int kernel_id, int * cc)
 {
     const int MAX_VAL = 1024;
@@ -76,6 +85,8 @@ FTask * new_task_middle(int n, int kernel_id, int * cc)
     return task;
 }
 
+// This ff_node is used in the farm implementation to start the execution of
+// the workes (pipeline containing the FPGA kernels).
 struct fake_emitter : public ff_node {
     int n;  // number of generators
 
@@ -90,6 +101,7 @@ struct fake_emitter : public ff_node {
     }
 };
 
+// This ff_node generates the tasks.
 struct generator : public ff_node {
 
     int n;    // size of the vectors
@@ -113,6 +125,7 @@ struct generator : public ff_node {
     }
 };
 
+// This ff_node receivese the result of "VADD" tasks and generate the "VINC" tasks.
 class middle : public ff_node {
 public:
 
@@ -157,8 +170,9 @@ public:
     }
 };
 
+// This ff_node receives the result of "VINC" tasks.
 struct drain : public ff_node {
-    
+
     int index;
     int i;
 
@@ -246,6 +260,14 @@ int main(int argc, char * argv[])
     }
 
     if (nWorkers == 0) {
+
+        // The following code implements a pipeline with 5 stages:
+        // 1. generator: generates n tasks
+        // 2. FNodeTask: executes the kernel "VADD" on the FPGA
+        // 3. middle:    receives the output of "VADD" and generates a new task
+        //               for the "VINC" kernel
+        // 4. FNodeTask: executes the kernel "VINC" on the FPGA
+        // 5. drain:     receives the output of "VINC" and frees the memory
         ff_pipeline p;
         p.add_stage(new generator(n, m));
         p.add_stage(new FNodeTask(device, kernel_names[0], chain));
@@ -257,9 +279,11 @@ int main(int argc, char * argv[])
         p.run_and_wait_end();
         std::cout << "ffTime: " << std::to_string(p.ffTime()) + " ms\n";
     } else {
+        // The following code implements a farm with "nWorkers" workers,
+        // each worker has a pipeline with 5 stages like the one above.
         ff_farm farm;
         farm.add_emitter(new fake_emitter(nWorkers));
-        
+
         std::vector<ff_node *> w;
         for (int i = 0; i < nWorkers; ++i) {
             ff_pipeline * p = new ff_pipeline();
@@ -274,8 +298,8 @@ int main(int argc, char * argv[])
         farm.add_workers(w);
         farm.remove_collector();
         farm.cleanup_workers();
-        
-        
+
+
         auto start = get_time();
         farm.run_and_wait_end();
         auto end = get_time();
